@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}Детали {{ model }}{% endblock %}
+{% block content %}
+<h2>👁️ Детали {{ model }} #{{ pk }}</h2>
+<p>Информация о {{ model }}</p>
+<a href="{% url 'mailing:message_list' %}" class="btn btn-secondary">Назад</a>
+{% endblock %}

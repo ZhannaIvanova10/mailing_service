@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}{% if update %}Редактирование {{ model }}{% else %}Создание {{ model }}{% endif %}{% endblock %}
+{% block content %}
+<h2>{% if update %}✏️ Редактирование {{ model }}{% else %}➕ Создание {{ model }}{% endif %}</h2>
+<p>Форма для {{ model }}</p>
+<a href="{% url 'mailing:message_list' %}" class="btn btn-secondary">Назад</a>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}Отправка рассылки{% endblock %}
+{% block content %}
+<h2>🚀 Отправка рассылки #{{ pk }}</h2>
+<p>Рассылка отправляется...</p>
+<a href="{% url 'mailing:mailing_list' %}" class="btn btn-secondary">Назад</a>
+{% endblock %}
