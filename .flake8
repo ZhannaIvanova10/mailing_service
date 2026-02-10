@@ -1,11 +1,14 @@
 [flake8]
 max-line-length = 120
 exclude = 
-    venv,
-    migrations,
-    __pycache__,
-    *.pyc,
+    venv
+    migrations
+    __pycache__
+    *.pyc
     staticfiles
 ignore = 
-    ALL   # Игнорируем все стилевые ошибки для сдачи проекта
-          # Главное - код работает и все критерии выполнены
+    W391
+    W293  
+    E302
+    F401
+    E501
