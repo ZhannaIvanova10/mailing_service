@@ -10,7 +10,7 @@ from django.conf import settings
 from django.db.models import Count, Q
 from datetime import datetime
 
-from .models import Client, Message, Mailing, MailingAttempt, MailingAttempt
+from .models import Client, Message, Mailing, MailingAttempt
 from .forms import ClientForm, MessageForm, MailingForm
 
 
