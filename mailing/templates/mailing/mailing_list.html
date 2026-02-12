@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Рассылки{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📬 Управление рассылками</h2>
+        <a href="{% url 'mailing:mailing_create' %}" class="btn btn-primary">
+            ➕ Создать рассылку
+        </a>
+    </div>
+
+    {% if object_list %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Тема письма</th>
+                        <th>Статус</th>
+                        <th>Дата начала</th>
+                        <th>Дата окончания</th>
+                        <th>Получателей</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mailing in object_list %}
+                    <tr>
+                        <td>{{ mailing.id }}</td>
+                        <td>{{ mailing.message.subject|truncatechars:50 }}</td>
+                        <td>
+                            <span class="badge {% if mailing.status == 'Запущена' %}bg-success
+                                             {% elif mailing.status == 'Создана' %}bg-warning text-dark
+                                             {% else %}bg-secondary{% endif %}">
+                                {{ mailing.status }}
+                            </span>
+                        </td>
+                        <td>{{ mailing.start_time|date:"d.m.Y H:i" }}</td>
+                        <td>{{ mailing.end_time|date:"d.m.Y H:i" }}</td>
+                        <td>{{ mailing.recipients.count }}</td>
+                        <td>
+                            <a href="{% url 'mailing:mailing_detail' mailing.pk %}" class="btn btn-sm btn-info">👁️</a>
+                            <a href="{% url 'mailing:mailing_update' mailing.pk %}" class="btn btn-sm btn-warning">✏️</a>
+                            <a href="{% url 'mailing:mailing_delete' mailing.pk %}" class="btn btn-sm btn-danger">🗑️</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>Пока нет созданных рассылок. <a href="{% url 'mailing:mailing_create' %}">Создайте первую рассылку</a>!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Клиенты{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>👥 Управление клиентами</h2>
+        <a href="{% url 'mailing:client_create' %}" class="btn btn-primary">
+            ➕ Добавить клиента
+        </a>
+    </div>
+
+    {% if object_list %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Ф.И.О.</th>
+                        <th>Комментарий</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in object_list %}
+                    <tr>
+                        <td>{{ client.email }}</td>
+                        <td>{{ client.full_name }}</td>
+                        <td>{{ client.comment|truncatechars:50 }}</td>
+                        <td>
+                            <a href="{% url 'mailing:client_update' client.pk %}" class="btn btn-sm btn-warning">✏️</a>
+                            <a href="{% url 'mailing:client_delete' client.pk %}" class="btn btn-sm btn-danger">🗑️</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>Клиенты пока не добавлены. <a href="{% url 'mailing:client_create' %}">Добавьте первого клиента</a>!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

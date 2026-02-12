@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}{{ object.message.subject }}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">📨 Детальная информация о рассылке #{{ object.id }}</h3>
+        </div>
+        <div class="card-body">
+            <h4 class="card-title">{{ object.message.subject }}</h4>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <p><strong>Статус:</strong> 
+                        <span class="badge {% if object.status == 'Запущена' %}bg-success
+                                         {% elif object.status == 'Создана' %}bg-warning text-dark
+                                         {% else %}bg-secondary{% endif %}">
+                            {{ object.status }}
+                        </span>
+                    </p>
+                    <p><strong>Начало рассылки:</strong> {{ object.start_time|date:"d.m.Y H:i" }}</p>
+                    <p><strong>Окончание рассылки:</strong> {{ object.end_time|date:"d.m.Y H:i" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">📊 Статистика</h5>
+                            <p class="mb-1">✅ Успешных попыток: <strong>{{ success_count }}</strong></p>
+                            <p class="mb-1">❌ Неуспешных попыток: <strong>{{ fail_count }}</strong></p>
+                            <p class="mb-0">📬 Всего попыток: <strong>{{ success_count|add:fail_count }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <h5>📝 Текст сообщения:</h5>
+            <div class="border p-3 bg-light rounded">
+                {{ object.message.body|linebreaks }}
+            </div>
+            
+            <hr>
+            <h5>👥 Получатели ({{ object.recipients.count }}):</h5>
+            <ul class="list-group">
+                {% for recipient in object.recipients.all %}
+                    <li class="list-group-item">
+                        {{ recipient.email }} - {{ recipient.full_name }}
+                    </li>
+                {% empty %}
+                    <li class="list-group-item">Нет получателей</li>
+                {% endfor %}
+            </ul>
+            
+            <div class="mt-4">
+                <a href="{% url 'mailing:mailing_update' object.pk %}" class="btn btn-warning">✏️ Редактировать</a>
+                <a href="{% url 'mailing:mailing_delete' object.pk %}" class="btn btn-danger">🗑️ Удалить</a>
+                <a href="{% url 'mailing:mailing_list' %}" class="btn btn-secondary">↩️ К списку</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

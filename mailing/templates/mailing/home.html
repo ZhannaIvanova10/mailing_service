@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Главная - Сервис рассылок{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="p-5 mb-4 bg-light rounded-3">
+        <div class="container-fluid py-5">
+            <h1 class="display-5 fw-bold">📧 Сервис управления рассылками</h1>
+            <p class="col-md-8 fs-4">
+                Создавайте и управляйте email-рассылками, отслеживайте статистику и эффективность.
+            </p>
+            
+            {% if user.is_authenticated %}
+                <a href="{% url 'mailing:mailing_list' %}" class="btn btn-primary btn-lg">🚀 Перейти к рассылкам</a>
+            {% else %}
+                <a href="{% url 'users:login' %}" class="btn btn-primary btn-lg">🔑 Войти</a>
+                <a href="{% url 'users:register' %}" class="btn btn-success btn-lg">📝 Регистрация</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row align-items-md-stretch">
+        <div class="col-md-4">
+            <div class="h-100 p-4 text-white bg-primary rounded-3">
+                <h2>📊 {{ total_mailings }}</h2>
+                <p>Всего рассылок в системе</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="h-100 p-4 text-white bg-success rounded-3">
+                <h2>✅ {{ active_mailings }}</h2>
+                <p>Активных рассылок</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="h-100 p-4 text-white bg-info rounded-3">
+                <h2>👥 {{ unique_clients }}</h2>
+                <p>Уникальных получателей</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
