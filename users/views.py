@@ -34,3 +34,11 @@ def edit_profile(request):
     else:
         form = UserProfileForm(instance=request.user)
     return render(request, 'users/profile_edit.html', {'form': form})
+
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+def custom_logout(request):
+    """Выход из системы с редиректом на главную"""
+    logout(request)
+    return redirect('mailing:home')

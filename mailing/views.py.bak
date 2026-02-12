@@ -2,15 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
-from django.db.models import Count, Q
-from datetime import datetime
-
-from .models import Client, Message, Mailing, MailingAttempt, MailingAttempt
+from .models import Client, Message, Mailing, MailingAttempt
 from .forms import ClientForm, MessageForm, MailingForm
 
 
@@ -34,8 +31,6 @@ def home(request):
         'unique_clients': unique_clients,
     }
     return render(request, 'mailing/home.html', context)
-
-
 # Клиенты
 class ClientListView(LoginRequiredMixin, ListView):
     model = Client
@@ -79,8 +74,6 @@ class ClientUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'Клиент успешно обновлен!')
         return super().form_valid(form)
-
-
 class ClientDeleteView(LoginRequiredMixin, DeleteView):
     model = Client
     template_name = 'mailing/client_confirm_delete.html'
@@ -123,8 +116,6 @@ class MessageCreateView(LoginRequiredMixin, CreateView):
         form.instance.owner = self.request.user
         messages.success(self.request, 'Сообщение успешно создано!')
         return super().form_valid(form)
-
-
 class MessageUpdateView(LoginRequiredMixin, UpdateView):
     model = Message
     form_class = MessageForm
@@ -174,8 +165,6 @@ class MailingDetailView(LoginRequiredMixin, DetailView):
         obj = super().get_object(queryset)
         obj.update_status()
         return obj
-
-
 class MailingCreateView(LoginRequiredMixin, CreateView):
     model = Mailing
     form_class = MailingForm
@@ -210,8 +199,6 @@ class MailingUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'Рассылка успешно обновлена!')
         return super().form_valid(form)
-
-
 class MailingDeleteView(LoginRequiredMixin, DeleteView):
     model = Mailing
     template_name = 'mailing/mailing_confirm_delete.html'
@@ -247,7 +234,6 @@ def send_mailing(request, pk):
     recipients = mailing.recipients.all()
     sent_count = 0
     error_count = 0
-
     for client in recipients:
         try:
             send_mail(
@@ -279,18 +265,12 @@ def send_mailing(request, pk):
         messages.warning(request, f'Не удалось отправить {error_count} писем')
 
     return redirect('mailing:mailing_detail', pk=pk)
-
-
 class MailingAttemptListView(LoginRequiredMixin, ListView):
     model = MailingAttempt
     template_name = 'mailing/attempt_list.html'
     context_object_name = 'attempts'
-    paginate_by = 20
 
     def get_queryset(self):
-        # Менеджеры видят все попытки, пользователи - только свои
-        if self.request.user.has_perm('mailing.view_all_mailings'):
-            return MailingAttempt.objects.all().select_related('mailing').order_by('-attempt_time')
         return MailingAttempt.objects.filter(
             mailing__owner=self.request.user
         ).select_related('mailing').order_by('-attempt_time')
@@ -301,16 +281,3 @@ class MailingAttemptListView(LoginRequiredMixin, ListView):
         context['success_count'] = attempts.filter(status='success').count()
         context['failure_count'] = attempts.filter(status='failure').count()
         return context
-# ========== ПОПЫТКИ РАССЫЛОК ==========
-class AttemptListView(LoginRequiredMixin, ListView):
-    """Список попыток рассылок"""
-    model = MailingAttempt
-    template_name = 'mailing/attempt_list.html'
-    context_object_name = 'attempts'
-    paginate_by = 20
-
-    def get_queryset(self):
-        # Менеджеры видят все попытки, пользователи - только свои
-        if self.request.user.has_perm('mailing.view_all_mailings'):
-            return MailingAttempt.objects.all()
-        return MailingAttempt.objects.filter(mailing__owner=self.request.user)
