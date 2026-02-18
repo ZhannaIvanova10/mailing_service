@@ -6,22 +6,22 @@ from django.contrib.auth.decorators import login_required
 from .models import Mailing, Client, Message
 from .forms import MailingForm, ClientForm, MessageForm
 
+# Упрощенные классы
 class MailingListView(LoginRequiredMixin, ListView):
     model = Mailing
     template_name = 'mailing/mailing_list.html'
     context_object_name = 'object_list'
     
     def get_queryset(self):
-        return Mailing.objects.all()  # Временно показываем все рассылки
+        return Mailing.objects.filter(owner=self.request.user)
 
 class MailingDetailView(LoginRequiredMixin, DetailView):
     model = Mailing
     template_name = 'mailing/mailing_detail.html'
     context_object_name = 'mailing'
     
-    # Временно убираем фильтрацию
-    # def get_queryset(self):
-    #     return Mailing.objects.filter(owner=self.request.user)
+    def get_queryset(self):
+        return Mailing.objects.filter(owner=self.request.user)
 
 class MailingCreateView(LoginRequiredMixin, CreateView):
     model = Mailing
@@ -32,7 +32,6 @@ class MailingCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
-
 class MailingUpdateView(LoginRequiredMixin, UpdateView):
     model = Mailing
     form_class = MailingForm
@@ -49,6 +48,7 @@ class MailingDeleteView(LoginRequiredMixin, DeleteView):
     
     def get_queryset(self):
         return Mailing.objects.filter(owner=self.request.user)
+
 # Клиенты
 class ClientListView(LoginRequiredMixin, ListView):
     model = Client
@@ -75,7 +75,6 @@ class ClientCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
-
 class ClientUpdateView(LoginRequiredMixin, UpdateView):
     model = Client
     form_class = ClientForm
@@ -92,6 +91,7 @@ class ClientDeleteView(LoginRequiredMixin, DeleteView):
     
     def get_queryset(self):
         return Client.objects.filter(owner=self.request.user)
+
 # Сообщения
 class MessageListView(LoginRequiredMixin, ListView):
     model = Message
@@ -108,7 +108,6 @@ class MessageDetailView(LoginRequiredMixin, DetailView):
     
     def get_queryset(self):
         return Message.objects.filter(owner=self.request.user)
-
 class MessageCreateView(LoginRequiredMixin, CreateView):
     model = Message
     form_class = MessageForm
@@ -135,30 +134,42 @@ class MessageDeleteView(LoginRequiredMixin, DeleteView):
     
     def get_queryset(self):
         return Message.objects.filter(owner=self.request.user)
-# Попытки (заглушка)
+
+# Попытки
 class AttemptListView(LoginRequiredMixin, ListView):
     template_name = 'mailing/attempt_list.html'
     context_object_name = 'object_list'
     
     def get_queryset(self):
         return []
-
-# Главная страница
+# Главная страница - УПРОЩЕННАЯ ВЕРСИЯ
 def home(request):
     if not request.user.is_authenticated:
         return render(request, 'mailing/home.html')
     
-    # Получаем рассылки пользователя
-    user_mailings = Mailing.objects.filter(owner=request.user)
+    # Явно получаем данные
+    mailings = list(Mailing.objects.filter(owner=request.user))
+    clients_count = Client.objects.filter(owner=request.user).count()
+    active_count = Mailing.objects.filter(owner=request.user, status='started').count()
+    
+    # Выводим в консоль для отладки
+    print("="*50)
+    print(f"USER: {request.user.email}")
+    print(f"MAILINGS FOUND: {len(mailings)}")
+    for m in mailings:
+        print(f"  - Mailing {m.id}: {m.message.subject}, status={m.status}")
+    print(f"CLIENTS: {clients_count}")
+    print(f"ACTIVE: {active_count}")
+    print("="*50)
     
     context = {
-        'total_mailings': Mailing.objects.filter(owner=request.user).count(),
-        'active_mailings': Mailing.objects.filter(owner=request.user, status='started').count(),
-        'total_clients': Client.objects.filter(owner=request.user).count(),
-        'user_mailings': user_mailings,
+        'total_mailings': len(mailings),
+        'active_mailings': active_count,
+        'total_clients': clients_count,
+        'user_mailings': mailings,
     }
+    
     return render(request, 'mailing/home.html', context)
-
 @login_required
 def send_mailing(request, pk):
     mailing = get_object_or_404(Mailing, pk=pk, owner=request.user)
