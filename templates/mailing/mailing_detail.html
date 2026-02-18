@@ -1,7 +1,118 @@
 {% extends 'base.html' %}
-{% block title %}Детали {{ model }}{% endblock %}
+
+{% block title %}Рассылка #{{ object.id }}{% endblock %}
+
 {% block content %}
-<h2>👁️ Детали {{ model }} #{{ pk }}</h2>
-<p>Информация о {{ model }}</p>
-<a href="{% url 'mailing:mailing_list' %}" class="btn btn-secondary">Назад</a>
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'mailing:home' %}">Главная</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'mailing:mailing_list' %}">Рассылки</a></li>
+            <li class="breadcrumb-item active">Рассылка #{{ object.id }}</li>
+        </ol>
+    </nav>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3>Рассылка #{{ object.id }}</h3>
+            <div>
+                <span class="badge {% if object.status == 'created' %}bg-warning{% elif object.status == 'started' %}bg-success{% else %}bg-secondary{% endif %} fs-6">
+                    {{ object.get_status_display }}
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Основная информация</h5>
+                    <table class="table">
+                        <tr>
+                            <th>Дата начала:</th>
+                            <td>{{ object.start_time|date:"d.m.Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Дата окончания:</th>
+                            <td>{{ object.end_time|date:"d.m.Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Сообщение:</th>
+                            <td>
+                                <a href="{% url 'mailing:message_detail' object.message.pk %}">
+                                    {{ object.message.subject }}
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Владелец:</th>
+                            <td>{{ object.owner.email }}</td>
+                        </tr>
+                        <tr>
+                            <th>Создана:</th>
+                            <td>{{ object.created_at|date:"d.m.Y H:i" }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5>Получатели ({{ object.recipients.count }})</h5>
+                    {% if object.recipients.all %}
+                        <ul class="list-group">
+                            {% for recipient in object.recipients.all %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'mailing:client_detail' recipient.pk %}">
+                                        {{ recipient.full_name }} ({{ recipient.email }})
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">Нет получателей</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="mt-4">
+                <h5>Последние попытки отправки</h5>
+                {% with attempts=object.attempts.all|slice:":5" %}
+                    {% if attempts %}
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Статус</th>
+                                    <th>Ответ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attempt in attempts %}
+                                    <tr>
+                                        <td>{{ attempt.attempt_time|date:"d.m.Y H:i:s" }}</td>
+                                        <td>
+                                            {% if attempt.status == 'success' %}
+                                                <span class="badge bg-success">Успешно</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Не успешно</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ attempt.server_response|truncatechars:50 }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% if object.attempts.count > 5 %}
+                            <a href="{% url 'mailing:attempt_list' %}" class="btn btn-sm btn-outline-primary">Все попытки</a>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">Попыток отправки пока нет</p>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'mailing:mailing_update' object.pk %}" class="btn btn-warning">Редактировать</a>
+            <a href="{% url 'mailing:mailing_delete' object.pk %}" class="btn btn-danger">Удалить</a>
+            {% if object.status == 'started' %}
+                <a href="{% url 'mailing:mailing_send' object.pk %}" class="btn btn-success">Запустить рассылку</a>
+            {% endif %}
+            <a href="{% url 'mailing:mailing_list' %}" class="btn btn-secondary">Назад к списку</a>
+        </div>
+    </div>
+</div>
 {% endblock %}

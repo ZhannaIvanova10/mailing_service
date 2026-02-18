@@ -1,48 +1,93 @@
 {% extends 'base.html' %}
+
 {% block title %}Главная{% endblock %}
+
 {% block content %}
-<h1 class="mb-4">Добро пожаловать в сервис рассылок!</h1>
-{% if user.is_authenticated %}
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <h5 class="card-title">Всего рассылок</h5>
-                    <h2>{{ total_mailings }}</h2>
+<div class="container">
+    <h1 class="mb-4">Сервис управления рассылками</h1>
+    {% if user.is_authenticated %}
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-header">Всего рассылок</div>
+                    <div class="card-body">
+                        <h5 class="card-title display-4">{{ total_mailings }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-header">Активных рассылок</div>
+                    <div class="card-body">
+                        <h5 class="card-title display-4">{{ active_mailings }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-header">Уникальных клиентов</div>
+                    <div class="card-body">
+                        <h5 class="card-title display-4">{{ total_clients }}</h5>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <h5 class="card-title">Активных рассылок</h5>
-                    <h2>{{ active_mailings }}</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Мои рассылки</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if user_mailings %}
+                            <ul class="list-group">
+                                {% for mailing in user_mailings|slice:":5" %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <a href="{% url 'mailing:mailing_detail' mailing.pk %}">
+                                            {{ mailing.message.subject|default:"Без темы" }}
+                                        </a>
+                                        <span class="badge {% if mailing.status == 'created' %}bg-warning{% elif mailing.status == 'started' %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {{ mailing.get_status_display }}
+                                        </span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            {% if user_mailings.count > 5 %}
+                                <a href="{% url 'mailing:mailing_list' %}" class="btn btn-link mt-3">Все рассылки →</a>
+                            {% endif %}
+                        {% else %}
+                            <p>У вас пока нет рассылок</p>
+                            <a href="{% url 'mailing:mailing_create' %}" class="btn btn-primary">Создать рассылку</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Статистика отправок</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if attempt_stats %}
+                            <p>Успешных отправок: <span class="badge bg-success">{{ attempt_stats.success }}</span></p>
+                            <p>Неуспешных отправок: <span class="badge bg-danger">{{ attempt_stats.failed }}</span></p>
+                            <p>Всего попыток: <span class="badge bg-info">{{ attempt_stats.total }}</span></p>
+                        {% else %}
+                            <p>Статистика отсутствует</p>
+                        {% endif %}
+                        <a href="{% url 'mailing:attempt_list' %}" class="btn btn-outline-primary mt-2">Подробнее</a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <h5 class="card-title">Уникальных клиентов</h5>
-                    <h2>{{ unique_clients }}</h2>
-                </div>
-            </div>
+    {% else %}
+        <div class="jumbotron">
+            <h2 class="display-4">Добро пожаловать!</h2>
+            <p class="lead">Для работы с сервисом необходимо войти или зарегистрироваться.</p>
+            <hr class="my-4">
+            <a href="{% url 'users:login' %}" class="btn btn-primary btn-lg">Войти</a>
+            <a href="{% url 'users:register' %}" class="btn btn-success btn-lg">Регистрация</a>
         </div>
-    </div>
-    
-    <div class="mt-4">
-        <h3>Быстрые действия:</h3>
-        <div class="btn-group">
-            <a href="{% url 'mailing:mailing_create' %}" class="btn btn-primary">📬 Создать рассылку</a>
-            <a href="{% url 'mailing:client_create' %}" class="btn btn-secondary">👤 Добавить клиента</a>
-            <a href="{% url 'mailing:message_create' %}" class="btn btn-success">✉️ Создать сообщение</a>
-        </div>
-    </div>
-{% else %}
-    <div class="alert alert-info">
-        <h4>Для работы с сервисом необходимо войти в систему</h4>
-        <a href="{% url 'users:login' %}" class="btn btn-primary">🔑 Войти</a>
-        <a href="{% url 'users:register' %}" class="btn btn-success">📝 Зарегистрироваться</a>
-    </div>
-{% endif %}
+    {% endif %}
+</div>
 {% endblock %}

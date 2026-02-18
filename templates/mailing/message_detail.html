@@ -1,7 +1,62 @@
 {% extends 'base.html' %}
-{% block title %}Детали {{ model }}{% endblock %}
+
+{% block title %}{{ object.subject }}{% endblock %}
+
 {% block content %}
-<h2>👁️ Детали {{ model }} #{{ pk }}</h2>
-<p>Информация о {{ model }}</p>
-<a href="{% url 'mailing:message_list' %}" class="btn btn-secondary">Назад</a>
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'mailing:home' %}">Главная</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'mailing:message_list' %}">Сообщения</a></li>
+            <li class="breadcrumb-item active">{{ object.subject }}</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>{{ object.subject }}</h3>
+        </div>
+        <div class="card-body">
+            <h5>Текст сообщения:</h5>
+            <div class="border p-3 bg-light">
+                {{ object.body|linebreaks }}
+            </div>
+
+            <table class="table mt-4">
+                <tr>
+                    <th style="width: 200px;">Владелец:</th>
+                    <td>{{ object.owner.email }}</td>
+                </tr>
+                <tr>
+                    <th>Дата создания:</th>
+                    <td>{{ object.created_at|date:"d.m.Y H:i" }}</td>
+                </tr>
+            </table>
+            <h5 class="mt-4">Рассылки с этим сообщением</h5>
+            {% with mailings=object.mailing_set.all %}
+                {% if mailings %}
+                    <ul class="list-group">
+                        {% for mailing in mailings %}
+                            <li class="list-group-item">
+                                <a href="{% url 'mailing:mailing_detail' mailing.pk %}">
+                                    Рассылка #{{ mailing.id }} ({{ mailing.start_time|date:"d.m.Y" }} - {{ mailing.end_time|date:"d.m.Y" }})
+                                </a>
+                                <span class="badge {% if mailing.status == 'created' %}bg-warning{% elif mailing.status == 'started' %}bg-success{% else %}bg-secondary{% endif %} float-end">
+                                    {{ mailing.get_status_display }}
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Сообщение не используется в рассылках</p>
+                {% endif %}
+            {% endwith %}
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'mailing:message_update' object.pk %}" class="btn btn-warning">Редактировать</a>
+            <a href="{% url 'mailing:message_delete' object.pk %}" class="btn btn-danger">Удалить</a>
+            <a href="{% url 'mailing:message_list' %}" class="btn btn-secondary">Назад к списку</a>
+        </div>
+    </div>
+</div>
 {% endblock %}
